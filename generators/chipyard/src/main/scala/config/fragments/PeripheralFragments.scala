@@ -14,6 +14,7 @@ import freechips.rocketchip.tile.{XLen}
 import sifive.blocks.devices.gpio._
 import sifive.blocks.devices.uart._
 import sifive.blocks.devices.spi._
+import sifive.blocks.inclusivecache._
 
 import testchipip._
 
@@ -24,6 +25,16 @@ class WithBootROM extends Config((site, here, up) => {
   case BootROMLocated(x) => up(BootROMLocated(x), site)
       .map(_.copy(contentFileName = s"${site(TargetDirKey)}/bootrom.rv${site(XLen)}.img"))
 })
+
+//==========rrunahead-start======================
+class WithL2hit(number_of_little_cores: Int = 0,width_GH_packet:Int = 0) extends Config((site, here, up) => {
+    case L2hitLocated(x) => up(L2hitLocated(x), site)
+        .map(_.copy(
+        number_of_little_cores = 0,
+        width_GH_packet = 0
+    ))
+})
+//================rrunahead-end======================
 
 // DOC include start: gpio config fragment
 class WithGPIO extends Config((site, here, up) => {

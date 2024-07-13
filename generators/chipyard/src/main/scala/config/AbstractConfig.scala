@@ -55,6 +55,9 @@ class AbstractConfig extends Config(
   new testchipip.WithDefaultSerialTL ++                             // use serialized tilelink port to external serialadapter/harnessRAM
   new chipyard.config.WithDebugModuleAbstractDataWords(8) ++        // increase debug module data capacity
   new chipyard.config.WithBootROM ++                                // use default bootrom
+  //rrunahead-start
+  new chipyard.config.WithL2hit ++
+  //rrunahead-end
   new chipyard.config.WithUART ++                                   // add a UART
   new chipyard.config.WithL2TLBs(1024) ++                           // use L2 TLBs
   new chipyard.config.WithNoSubsystemDrivenClocks ++                // drive the subsystem diplomatic clocks from ChipTop instead of using implicit clocks

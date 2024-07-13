@@ -306,11 +306,24 @@ $(sim_common_files): $(sim_files) $(ALL_MODS_FILELIST) $(TOP_SMEMS_FILE) $(MODEL
 	echo "$(TOP_SMEMS_FILE)" >> $@
 	echo "$(MODEL_SMEMS_FILE)" >> $@
 
+
+########################################################################################
+# rain---modify
+########################################################################################
+# $(sim_common_files1): $(sim_files) $(ALL_MODS_FILELIST) $(TOP_SMEMS_FILE) $(MODEL_SMEMS_FILE) $(BB_MODS_FILELIST)
+# 	sort -u $(sim_files) $(ALL_MODS_FILELIST) | grep -v '.*\.\(svh\|h\)$$' > $@
+# 	echo "$(TOP_SMEMS_FILE)" >> $@
+# 	echo "$(MODEL_SMEMS_FILE)" >> $@
+sim_common_files1 := /home/rain2/lean/chipyard/sims/verilator/generated-src/chipyard.harness.TestHarness.RocketConfig/sim_files.common.f
 #########################################################################################
 # helper rule to just make verilog files
 #########################################################################################
 .PHONY: verilog
 verilog: $(sim_common_files)
+	echo "$(sim_common_files)"
+	echo "$(sim_files)"
+	echo "$(ALL_MODS_FILELIST)" 
+	
 
 #########################################################################################
 # helper rules to run simulations
@@ -334,6 +347,7 @@ endif
 # allow you to override sim prereq
 ifeq (,$(BREAK_SIM_PREREQ))
 SIM_PREREQ = $(sim)
+SIM_DEBUG_PREREQ1 = $(sim-rain)
 SIM_DEBUG_PREREQ = $(sim_debug)
 endif
 
@@ -363,6 +377,13 @@ run-binaries: check-binaries $(addsuffix .run,$(BINARIES))
 
 %.run: %.check-exists $(SIM_PREREQ) | $(output_dir)
 	(set -o pipefail && $(NUMA_PREFIX) $(sim) $(PERMISSIVE_ON) $(call get_common_sim_flags,$*) $(VERBOSE_FLAGS) $(PERMISSIVE_OFF) $* </dev/null 2> >(spike-dasm > $(call get_sim_out_name,$*).out) | tee $(call get_sim_out_name,$*).log)
+#rain-modify
+run-binary-rain: check-binary $(BINARY).run.debug1
+%.run.debug1: %.check-exists $(SIM_DEBUG_PREREQ1) | $(output_dir)
+ifneq (none,$*)
+	riscv64-unknown-elf-objdump -D -S $* > $(call get_sim_out_name,$*).dump
+endif
+	(set -o pipefail && ./$(sim-rain) $(PERMISSIVE_ON) $(call get_common_sim_flags,$*) $(VERBOSE_FLAGS) $(call get_waveform_flag,$(call get_sim_out_name,$*)) $(PERMISSIVE_OFF) $* </dev/null 2> >(spike-dasm > $(call get_sim_out_name,$*).out) | tee $(call get_sim_out_name,$*).log)
 
 # run simulator as fast as possible (no insn disassembly)
 run-binary-fast: check-binary $(BINARY).run.fast

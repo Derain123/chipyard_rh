@@ -213,6 +213,27 @@ $(sim_debug): $(model_mk_debug) $(dramsim_lib)
 	$(MAKE) VM_PARALLEL_BUILDS=1 -C $(model_dir_debug) -f V$(TB).mk
 
 #########################################################################################
+# rain---modify
+#########################################################################################
+model_header1 := $(model_dir1)/V$(TB).h
+model_dir1 := /home/rain2/lean/chipyard/sims/verilator/generated-src/chipyard.harness.TestHarness.RocketConfig/chipyard.harness.TestHarness.RocketConfig
+model_mk1 := $(model_dir1)/V$(TB).mk
+sim-rain := simulator-chipyard.harness-RocketConfig-rain
+
+$(model_mk1): $(sim_common_files1) $(EXTRA_SIM_REQS)
+	rm -rf $(model_dir1)
+	mkdir -p $(model_dir1)
+	$(VERILATOR) $(VERILATOR_OPTS) +define+DEBUG $(EXTRA_SIM_SOURCES) -o $(sim-rain) $(TRACING_OPTS) -Mdir $(model_dir1) -CFLAGS "-include $(model_header1)"
+	touch $@
+
+sim-rain : $(sim-rain)
+$(sim-rain): $(model_mk1) $(dramsim_lib)
+	$(MAKE) VM_PARALLEL_BUILDS=1 -C $(model_dir1) -f V$(TB).mk
+
+# $(sim_debug): $(model_mk_debug) $(dramsim_lib)
+# 	$(MAKE) VM_PARALLEL_BUILDS=1 -C $(model_dir_debug) -f V$(TB).mk
+
+#########################################################################################
 # create a verilator vpd rule
 #########################################################################################
 .PRECIOUS: $(output_dir)/%.vpd %.vcd
@@ -229,7 +250,7 @@ clean:
 	rm -rf $(CLASSPATH_CACHE) $(gen_dir) $(sim_prefix)-*
 
 clean-sim:
-	rm -rf $(model_dir) $(sim)
+	rm -rf $(model_dir) $(model_dir1) $(sim) $(sim-rain)
 
 clean-sim-debug:
 	rm -rf $(model_dir_debug) $(sim_debug)
